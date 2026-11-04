@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Readaloud 문서 낭독기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+[hidden] { display: none !important; }
+/* Layout: a reading column with a section index on the left (top on phones) and a fixed player bar along the bottom edge. */
+:root {
+  --paper: #f5f6f3; --sheet: #fdfdfb; --ink: #1d2430; --muted: #5d6673; --rule: #d9ddd6;
+  --accent: #2f5d62; --accent-ink: #ffffff; --mark: #f3dd8c; --mark-ink: #1d2430;
+  --bar: #1f2a33; --bar-ink: #eef1ee; --bar-muted: #a9b4b8; --drop: #e7ece6;
+  --serif: "Noto Serif KR", "Nanum Myeongjo", "Batang", "AppleMyungjo", Georgia, serif;
+  --sans: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --bar-h: 132px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #151b21; --sheet: #1b232b; --ink: #e4e8e6; --muted: #9aa5ad; --rule: #2e3943;
+    --accent: #7fb3b3; --accent-ink: #0f1519; --mark: #6b5a1e; --mark-ink: #fff6d6;
+    --bar: #0e1317; --bar-ink: #e4e8e6; --bar-muted: #8e9aa2; --drop: #202a33; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #151b21; --sheet: #1b232b; --ink: #e4e8e6; --muted: #9aa5ad; --rule: #2e3943;
+  --accent: #7fb3b3; --accent-ink: #0f1519; --mark: #6b5a1e; --mark-ink: #fff6d6;
+  --bar: #0e1317; --bar-ink: #e4e8e6; --bar-muted: #8e9aa2; --drop: #202a33; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 14px; }
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: calc(24px + env(safe-area-inset-top, 0px)) calc(var(--bar-h) + 40px + env(safe-area-inset-bottom, 0px));
+}
+header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 20px; margin-bottom: 20px; }
+.brand { display: grid; gap: 4px; min-width: 0; }
+.eyebrow { font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+h1.title { font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 3.2vw, 30px); line-height: 1.3; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+.stats { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.btn {
+  font: 500 14px var(--sans); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule);
+  border-radius: 999px; height: 38px; padding: 0 16px; cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.empty { display: grid; gap: 18px; }
+.drop {
+  border: 2px dashed var(--rule); border-radius: 14px; background: var(--sheet);
+  padding: clamp(28px, 6vw, 64px) clamp(18px, 4vw, 40px); display: grid; gap: 14px; justify-items: start;
+}
+.drop.over { border-color: var(--accent); background: var(--drop); }
+.drop h2 { font-family: var(--serif); font-size: clamp(20px, 2.6vw, 26px); font-weight: 600; margin: 0; text-wrap: balance; }
+.drop p { margin: 0; color: var(--muted); line-height: 1.7; max-width: 62ch; }
+.formats { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: 12px; border: 1px solid var(--rule); border-radius: 999px; padding: 3px 10px; color: var(--muted); background: var(--paper); }
+.resume { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.msg { font-size: 14px; line-height: 1.6; color: var(--ink); background: var(--drop); border-radius: 8px; padding: 10px 14px; }
+.howto { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.howto div { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; line-height: 1.6; color: var(--muted); font-size: 13px; }
+.howto b { display: block; color: var(--ink); font-size: 14px; margin-bottom: 4px; }
+
+.layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 28px; align-items: start; }
+.layout.notoc { grid-template-columns: minmax(0, 1fr); }
+nav.toc { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); max-height: calc(100vh - var(--bar-h) - 48px); overflow: auto; font-size: 13px; }
+nav ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+nav button { all: unset; cursor: pointer; display: block; width: 100%; padding: 5px 8px; border-radius: 6px; color: var(--muted); line-height: 1.4; overflow-wrap: anywhere; }
+nav button.l2 { padding-left: 20px; font-size: 12.5px; }
+nav button.l3 { padding-left: 32px; font-size: 12px; }
+nav button:hover { color: var(--ink); background: var(--sheet); }
+nav button.on { color: var(--accent); font-weight: 600; }
+nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+details.toc-m { display: none; }
+article { background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: clamp(18px, 4vw, 44px); min-width: 0; }
+.read { max-width: 66ch; margin: 0 auto; font-family: var(--serif); font-size: 17px; line-height: 1.9; overflow-wrap: break-word; }
+.read h2 { font-size: 21px; font-weight: 600; margin: 34px 0 10px; line-height: 1.4; }
+.read h3 { font-size: 18px; font-weight: 600; margin: 26px 0 6px; line-height: 1.4; }
+.read h4 { font-size: 16.5px; font-weight: 600; margin: 20px 0 4px; line-height: 1.4; }
+.read > :first-child { margin-top: 0; }
+.read p { margin: 0 0 14px; }
+.read p.cap { font-family: var(--sans); font-size: 14px; color: var(--muted); border-left: 3px solid var(--rule); padding-left: 12px; }
+.read p.eq { font-family: var(--sans); font-size: 13px; color: var(--muted); }
+.read p.note { font-size: 15px; line-height: 1.75; }
+.tbl { overflow-x: auto; margin: 0 0 16px; }
+.tbl table { border-collapse: collapse; font-family: var(--sans); font-size: 13px; line-height: 1.5; }
+.tbl td { border: 1px solid var(--rule); padding: 4px 8px; vertical-align: top; }
+.s { cursor: pointer; border-radius: 3px; transition: background-color .15s; }
+.s:hover { background: color-mix(in srgb, var(--mark) 35%, transparent); }
+.s.now { background: var(--mark); color: var(--mark-ink); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.off .s, .s.off { color: var(--muted); }
+
+.player {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bar); color: var(--bar-ink);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: 12px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 24px rgba(0,0,0,.18);
+}
+.player .in { max-width: 1120px; margin: 0 auto; display: grid; gap: 10px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.now-line { font-size: 13px; color: var(--bar-muted); min-width: 0; flex: 1 1 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.now-line b { color: var(--bar-ink); font-weight: 600; }
+.ctrl { display: flex; align-items: center; gap: 6px; }
+.ctrl button {
+  font: 500 14px var(--sans); color: var(--bar-ink); background: transparent; border: 1px solid color-mix(in srgb, var(--bar-ink) 22%, transparent);
+  border-radius: 999px; height: 40px; min-width: 40px; padding: 0 12px; cursor: pointer;
+}
+.ctrl button:hover:not(:disabled) { border-color: var(--bar-ink); }
+.ctrl button:disabled { opacity: .4; cursor: default; }
+.ctrl button.play { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); min-width: 92px; font-weight: 600; }
+.ctrl button:focus-visible, .opts select:focus-visible, .opts input:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+.opts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 13px; color: var(--bar-muted); }
+.opts label { display: inline-flex; align-items: center; gap: 6px; }
+.opts select { font: 13px var(--sans); max-width: 240px; background: color-mix(in srgb, var(--bar-ink) 8%, var(--bar)); color: var(--bar-ink); border: 1px solid color-mix(in srgb, var(--bar-ink) 22%, transparent); border-radius: 6px; padding: 5px 6px; }
+.opts input[type="range"] { width: 110px; accent-color: var(--accent); }
+.rate { font-variant-numeric: tabular-nums; color: var(--bar-ink); min-width: 3.2em; }
+.meter { height: 4px; background: color-mix(in srgb, var(--bar-ink) 14%, transparent); border-radius: 4px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--mark); transition: width .3s; }
+.warn { font-size: 13px; color: var(--mark); }
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.toc { display: none; }
+  details.toc-m { display: block; margin-bottom: 14px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+  details.toc-m summary { cursor: pointer; font-weight: 600; }
+  details.toc-m nav { margin-top: 8px; max-height: 50vh; overflow: auto; }
+  .read { font-size: 16.5px; }
+  :root { --bar-h: 210px; }
+}
+@media (prefers-reduced-motion: reduce) { .s, .meter i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow" id="eyebrow">Readaloud · docx·tex 문서를 소리 내어 읽기</span>
+      <h1 class="title" id="doc-title">문서 낭독기</h1>
+      <span class="stats" id="stats" hidden></span>
+    </div>
+    <button class="btn" id="b-open-2" hidden>다른 파일 열기</button>
+  </header>
+
+  <section class="empty" id="empty">
+    <div class="drop" id="drop">
+      <h2>읽을 문서를 여기에 끌어다 놓거나 파일을 고르세요</h2>
+      <div class="formats"><span class="chip">Word .docx</span><span class="chip">LaTeX .tex</span></div>
+      <button class="btn primary" id="b-open">파일 열기</button>
+      <p>파일은 이 브라우저 안에서만 읽고 어디로도 보내지 않습니다. 음성은 이 기기와 브라우저에 설치된 음성을 씁니다.</p>
+      <div class="resume" id="resume" hidden><span id="resume-text"></span><button class="btn" id="b-resume">이어 듣기</button><button class="btn" id="b-forget">기록 지우기</button></div>
+      <div class="msg" id="msg" hidden></div>
+    </div>
+    <div class="howto">
+      <div><b>docx</b>제목 스타일(제목 1–3)을 목차로 씁니다. 표는 화면에 보이고, 표 내용 읽기를 켜면 행 단위로 읽습니다. 각주·미주는 문서 끝 "주"에 모입니다.</div>
+      <div><b>tex</b>\section 계열을 목차로 씁니다. 수식 환경은 건너뛰고, 그림·표는 캡션만 남깁니다. \input으로 불러오는 다른 파일은 포함되지 않습니다.</div>
+      <div><b>듣기</b>문장을 누르면 그 문장부터 읽습니다. 스페이스로 재생·정지하고 ←·→로 문장을 옮깁니다. 위치와 설정은 이 브라우저에 남습니다.</div>
+    </div>
+  </section>
+
+  <section id="reader" hidden>
+    <details class="toc-m" id="toc-m"><summary>목차</summary><nav aria-label="목차"><ol id="toc-list-m"></ol></nav></details>
+    <div class="layout" id="layout">
+      <nav class="toc" id="toc" aria-label="목차"><ol id="toc-list"></ol></nav>
+      <article><div class="read" id="doc"></div></article>
+    </div>
+  </section>
+  <input type="file" id="file" accept=".docx,.tex,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+</div>
+
+<div class="player" role="region" aria-label="낭독 조작">
+  <div class="in">
+    <div class="meter" aria-hidden="true"><i id="meter"></i></div>
+    <div class="row">
+      <div class="ctrl">
+        <button id="b-prev-sec" title="이전 절" aria-label="이전 절" disabled>⏮</button>
+        <button id="b-prev" title="이전 문장 (←)" aria-label="이전 문장" disabled>‹</button>
+        <button id="b-play" class="play" aria-label="재생" disabled>재생</button>
+        <button id="b-next" title="다음 문장 (→)" aria-label="다음 문장" disabled>›</button>
+        <button id="b-next-sec" title="다음 절" aria-label="다음 절" disabled>⏭</button>
+      </div>
+      <div class="now-line" id="now-line" aria-live="polite">문서를 열면 여기서 재생합니다.</div>
+    </div>
+    <div class="opts">
+      <label for="lang">언어 <select id="lang"><option value="auto">자동</option><option value="ko">한국어</option><option value="en">English</option></select></label>
+      <label for="voice">음성 <select id="voice"></select></label>
+      <label for="rate">속도 <input id="rate" type="range" min="0.6" max="2" step="0.05" value="1.1"><span class="rate" id="rate-v">1.10×</span></label>
+      <label for="o-cap"><input id="o-cap" type="checkbox" checked> 표·그림 제목</label>
+      <label for="o-tbl"><input id="o-tbl" type="checkbox"> 표 내용</label>
+      <label for="o-note"><input id="o-note" type="checkbox"> 주</label>
+      <label for="o-ref"><input id="o-ref" type="checkbox" checked> 괄호 속 참조 건너뛰기</label>
+      <span class="warn" id="warn" hidden></span>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/mammoth.browser.min.js"></script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('readaloud:' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('readaloud:' + k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+  del(k) { try { localStorage.removeItem('readaloud:' + k); } catch (e) {} },
+};
+const clean = s => s.replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+const CAP_RE = /^(?:Table|Figure|Fig\.|Exhibit|Chart|표|그림|도표)\s*[A-Z]?[\d.]+\s*[.:]/;
+
+// ===================== docx (mammoth, in the browser) =====================
+async function docxToBlocks(buf) {
+  if (!window.mammoth) throw new Error('docx 변환 라이브러리(vendor/mammoth.browser.min.js)를 불러오지 못했습니다.');
+  const res = await mammoth.convertToHtml({ arrayBuffer: buf }, { convertImage: mammoth.images.imgElement(() => Promise.resolve({ src: '' })) });
+  const dom = new DOMParser().parseFromString('<div>' + res.value + '</div>', 'text/html').body.firstChild;
+  dom.querySelectorAll('sup').forEach(s => { if (s.querySelector('a[href^="#footnote-"], a[href^="#endnote-"]')) s.remove(); });
+  dom.querySelectorAll('img').forEach(i => i.remove());
+  const blocks = [], notes = [];
+  const textOf = el => clean(el.textContent.replace(/↑/g, ''));
+  for (const el of [...dom.children]) {
+    const tag = el.tagName.toLowerCase();
+    if (/^h[1-6]$/.test(tag)) { const t = textOf(el); if (t) blocks.push({ k: 'H', lv: Math.min(3, +tag[1]), t }); }
+    else if (tag === 'p') { const t = textOf(el); if (t) blocks.push({ k: CAP_RE.test(t) ? 'C' : 'P', t }); }
+    else if (tag === 'ol' || tag === 'ul') {
+      const lis = [...el.children].filter(x => x.tagName === 'LI');
+      const isNotes = lis.length && lis.every(li => /^(foot|end)note-/.test(li.id || ''));
+      for (const li of lis) { const t = textOf(li); if (t) (isNotes ? notes : blocks).push(isNotes ? { k: 'N', t } : { k: 'P', t }); }
+    } else if (tag === 'table') {
+      const rows = [...el.querySelectorAll('tr')].map(tr => [...tr.children].map(td => textOf(td)));
+      if (rows.length) blocks.push({ k: 'T', rows });
+    } else { const t = textOf(el); if (t) blocks.push({ k: 'P', t }); }
+  }
+  return { blocks, notes, warnings: [] };
+}
+
+// ===================== tex (a light converter for reading) =====================
+function readGroup(s, i, open = '{', close = '}') {   // s[i] === open; returns [content, indexAfterClose]
+  let depth = 0;
+  for (let j = i; j < s.length; j++) {
+    const c = s[j];
+    if (c === '\\') { j++; continue; }
+    if (c === open) depth++;
+    else if (c === close) { depth--; if (depth === 0) return [s.slice(i + 1, j), j + 1]; }
+  }
+  return [s.slice(i + 1), s.length];
+}
+// replace \name*[opt]{arg} (each given name) using fn(arg, opt, star); nargs braces are read
+function replaceCmd(s, names, fn, nargs = 1) {
+  const re = new RegExp('\\\\(' + names.join('|') + ')(?![A-Za-z])', 'g');
+  let out = '', last = 0, m;
+  while ((m = re.exec(s))) {
+    let i = m.index + m[0].length, star = false, opt = null; const args = [];
+    if (s[i] === '*') { star = true; i++; }
+    while (/\s/.test(s[i] || '') && s[i] !== '\n') i++;
+    if (s[i] === '[') { const r = readGroup(s, i, '[', ']'); opt = r[0]; i = r[1]; }
+    for (let a = 0; a < nargs; a++) {
+      let k = i; while (/\s/.test(s[k] || '')) k++;
+      if (s[k] === '{') { const r = readGroup(s, k); args.push(r[0]); i = r[1]; } else break;
+    }
+    out += s.slice(last, m.index) + fn(args, opt, star, m[1]);
+    last = i; re.lastIndex = i;
+  }
+  return out + s.slice(last);
+}
+const GREEK = 'alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho sigma tau upsilon phi varphi chi psi omega Gamma Delta Theta Lambda Xi Pi Sigma Upsilon Phi Psi Omega'.split(' ');
+const GREEK_U = 'α β γ δ ε ε ζ η θ θ ι κ λ μ ν ξ π π ρ σ τ υ φ φ χ ψ ω Γ Δ Θ Λ Ξ Π Σ Υ Φ Ψ Ω'.split(' ');
+function mathText(m) {
+  let s = m;
+  s = replaceCmd(s, ['frac', 'dfrac', 'tfrac'], a => `${a[0] || ''}/${a[1] || ''}`, 2);
+  s = replaceCmd(s, ['sqrt'], a => '√' + (a[0] || ''));
+  s = replaceCmd(s, ['mathrm', 'mathbf', 'mathit', 'mathsf', 'mathcal', 'mathbb', 'boldsymbol', 'text', 'textrm', 'operatorname', 'hat', 'bar', 'tilde', 'vec', 'dot', 'overline', 'underline'], a => a[0] || '');
+  const sym = { leq: '≤', le: '≤', geq: '≥', ge: '≥', neq: '≠', ne: '≠', approx: '≈', sim: '~', times: '×', cdot: '·', pm: '±', mp: '∓', 'in': '∈', notin: '∉', infty: '∞', to: '→', rightarrow: '→', leftarrow: '←', Rightarrow: '⇒', ldots: '…', cdots: '…', dots: '…', sum: 'Σ', prod: 'Π', int: '∫', partial: '∂', nabla: '∇', forall: '∀', exists: '∃', cup: '∪', cap: '∩', subset: '⊂', subseteq: '⊆', propto: '∝', deg: '°', circ: '°', prime: '′' };
+  s = s.replace(/\\([A-Za-z]+)/g, (x, n) => { const g = GREEK.indexOf(n); if (g >= 0) return GREEK_U[g]; if (n in sym) return sym[n]; if (/^(left|right|big|Big|bigg|Bigg|limits|nolimits|displaystyle|quad|qquad)$/.test(n)) return ' '; return ''; });
+  s = s.replace(/\\[,;:! ]/g, ' ').replace(/[{}]/g, '').replace(/[_^]/g, '').replace(/&/g, ' ').replace(/\\\\/g, ' ');
+  return clean(s);
+}
+function texToBlocks(src) {
+  const warnings = [];
+  let s = src.replace(/\r\n?/g, '\n');
+  s = s.replace(/(^|[^\\])%.*$/gm, '$1');                                   // comments
+  let title = '';
+  { const m = s.match(/\\title\s*(?:\[[^\]]*\])?\s*\{/); if (m) title = clean(texInline(readGroup(s, m.index + m[0].length - 1)[0])); }
+  const b = s.indexOf('\\begin{document}'), e = s.lastIndexOf('\\end{document}');
+  if (b >= 0) s = s.slice(b + 16, e > b ? e : undefined);
+  if (/\\(input|include)\s*\{/.test(s)) warnings.push('이 파일은 \\input·\\include로 다른 파일을 불러옵니다. 그 내용은 포함되지 않습니다.');
+  // verbatim-like and graphics environments: drop with their content
+  s = s.replace(/\\begin\{(verbatim\*?|lstlisting|minted|tikzpicture|pgfpicture|comment|thebibliography|algorithmic)\}[\s\S]*?\\end\{\1\}/g, '\n\n');
+  // floats: keep only the caption
+  s = s.replace(/\\begin\{(figure\*?|table\*?|algorithm\*?|sidewaystable|sidewaysfigure|wrapfigure|wraptable)\}([\s\S]*?)\\end\{\1\}/g, (x, env, body) => {
+    const caps = []; replaceCmd(body, ['caption'], a => { caps.push(a[0] || ''); return ''; });
+    return caps.map(c => '\n\n@@CAP@@' + c + '\n\n').join('') || '\n\n';
+  });
+  s = s.replace(/\\begin\{(tabular\*?|tabularx|longtable|array)\}[\s\S]*?\\end\{\1\}/g, '\n\n');
+  // display math
+  s = s.replace(/\\begin\{(equation\*?|align\*?|alignat\*?|gather\*?|multline\*?|eqnarray\*?|displaymath|flalign\*?|subequations)\}[\s\S]*?\\end\{\1\}/g, '\n\n@@EQ@@\n\n');
+  s = s.replace(/\$\$[\s\S]*?\$\$/g, '\n\n@@EQ@@\n\n').replace(/\\\[[\s\S]*?\\\]/g, '\n\n@@EQ@@\n\n');
+  // footnotes -> notes
+  const notes = [];
+  s = replaceCmd(s, ['footnote'], a => { notes.push(a[0] || ''); return ''; });
+  // abstract and headings
+  s = s.replace(/\\begin\{abstract\}/g, '\n\n@@H1@@Abstract\n\n').replace(/\\end\{abstract\}/g, '\n\n');
+  s = replaceCmd(s, ['part', 'chapter', 'section'], a => '\n\n@@H1@@' + (a[0] || '') + '\n\n');
+  s = replaceCmd(s, ['subsection'], a => '\n\n@@H2@@' + (a[0] || '') + '\n\n');
+  s = replaceCmd(s, ['subsubsection', 'paragraph'], a => '\n\n@@H3@@' + (a[0] || '') + '\n\n');
+  // lists
+  s = s.replace(/\\begin\{(itemize|enumerate|description)\}(\[[^\]]*\])?/g, '\n\n').replace(/\\end\{(itemize|enumerate|description)\}/g, '\n\n');
+  s = s.replace(/\\item\s*(?:\[([^\]]*)\])?/g, (x, lab) => '\n\n' + (lab ? lab + ' ' : ''));
+  s = s.replace(/\\(begin|end)\{[^}]*\}(\{[^}]*\})?/g, '\n');
+  s = s.replace(/\\(par|newline|linebreak|newpage|clearpage|cleardoublepage|bigskip|medskip|smallskip)\b/g, '\n\n');
+  const blocks = [];
+  for (const raw of s.split(/\n\s*\n/)) {
+    const m = raw.trim().match(/^@@(H[123]|CAP|EQ)@@([\s\S]*)$/);
+    if (m) {
+      if (m[1] === 'EQ') { blocks.push({ k: 'E', t: '[수식]' }); continue; }
+      const t = clean(texInline(m[2])); if (!t) continue;
+      if (m[1] === 'CAP') blocks.push({ k: 'C', t }); else blocks.push({ k: 'H', lv: +m[1][1], t });
+      continue;
+    }
+    const t = clean(texInline(raw)); if (t) blocks.push({ k: CAP_RE.test(t) ? 'C' : 'P', t });
+  }
+  return { blocks, notes: notes.map(n => ({ k: 'N', t: clean(texInline(n)) })).filter(n => n.t), warnings, title };
+}
+function texInline(x) {
+  let s = x;
+  s = s.replace(/\\\((.*?)\\\)/gs, (m, a) => ' ' + mathText(a) + ' ');
+  s = s.replace(/(^|[^\\])\$([^$]+?)\$/g, (m, p, a) => p + mathText(a));
+  s = replaceCmd(s, ['label', 'cite', 'citep', 'citet', 'citealp', 'citealt', 'citeauthor', 'citeyear', 'parencite', 'textcite', 'autocite', 'nocite', 'ref', 'eqref', 'autoref', 'cref', 'Cref', 'pageref', 'url', 'vspace', 'hspace', 'includegraphics', 'bibliography', 'bibliographystyle', 'thanks', 'footnotemark', 'index', 'setlength', 'addtolength', 'pagestyle', 'thispagestyle', 'newcommand', 'renewcommand', 'usepackage', 'input', 'include'], () => '');
+  s = replaceCmd(s, ['href'], a => a[1] || '', 2);
+  for (let pass = 0; pass < 4; pass++)
+    s = replaceCmd(s, ['emph', 'textbf', 'textit', 'texttt', 'textsc', 'textsf', 'textrm', 'textup', 'textmd', 'textnormal', 'underline', 'uline', 'mbox', 'hbox', 'text', 'enquote', 'hl', 'textsuperscript', 'textsubscript', 'caption', 'title', 'author', 'date', 'small', 'large'], a => a[0] || '');
+  const rep = [[/\\ldots|\\dots|\\textellipsis/g, '…'], [/\\textendash/g, '–'], [/\\textemdash/g, '—'], [/---/g, '—'], [/--/g, '–'], [/``/g, '“'], [/''/g, '”'], [/`/g, '‘'],
+    [/\\%/g, '%'], [/\\&/g, '&'], [/\\\$/g, '$'], [/\\#/g, '#'], [/\\_/g, '_'], [/\\\{/g, '{'], [/\\\}/g, '}'], [/\\textbackslash/g, '\\'], [/\\LaTeX\b/g, 'LaTeX'], [/\\TeX\b/g, 'TeX'],
+    [/~/g, ' '], [/\\\\(\[[^\]]*\])?/g, ' '], [/\\[,;:! ]/g, ' '], [/\\(quad|qquad|noindent|centering|raggedright|raggedleft|maketitle|tableofcontents|listoffigures|listoftables|appendix|footnotesize|scriptsize|normalsize|large|Large|LARGE|huge|Huge|bfseries|itshape|rmfamily|sffamily|ttfamily|selectfont|hline|toprule|midrule|bottomrule|today|protect|relax|indent)\b/g, ' ']];
+  for (const [re, r] of rep) s = s.replace(re, r);
+  s = s.replace(/\\[A-Za-z]+\*?(\[[^\]]*\])?/g, '');                       // any remaining command name
+  s = s.replace(/[{}]/g, '');
+  return s.replace(/[ \t]+([.,;:)\]])/g, '$1').replace(/\(\s+/g, '(');   // tidy the gaps left by removed \cite and \ref
+}
+
+// ===================== speech text =====================
+const SUBS = { '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9', 'ₖ': ' k', 'ⱼ': ' j', 'ₛ': ' s', 'ₜ': ' t', 'ᵢ': ' i', 'ₙ': ' n', '⁺': ' plus', '⁻': ' minus', '²': ' 제곱', '³': ' 세제곱' };
+const G_KO = { α: '알파', β: '베타', γ: '감마', δ: '델타', ε: '엡실론', ζ: '제타', η: '에타', θ: '세타', κ: '카파', λ: '람다', μ: '뮤', ν: '뉴', ξ: '크사이', π: '파이', ρ: '로', σ: '시그마', τ: '타우', φ: '파이', χ: '카이', ψ: '프사이', ω: '오메가', Σ: '합', Δ: '델타', Γ: '감마', Θ: '세타', Ω: '오메가', Φ: '파이', Ψ: '프사이', Λ: '람다', Π: '곱' };
+const G_EN = { α: 'alpha', β: 'beta', γ: 'gamma', δ: 'delta', ε: 'epsilon', ζ: 'zeta', η: 'eta', θ: 'theta', κ: 'kappa', λ: 'lambda', μ: 'mu', ν: 'nu', ξ: 'xi', π: 'pi', ρ: 'rho', σ: 'sigma', τ: 'tau', φ: 'phi', χ: 'chi', ψ: 'psi', ω: 'omega', Σ: 'sum', Δ: 'delta', Γ: 'gamma', Θ: 'theta', Ω: 'omega', Φ: 'phi', Ψ: 'psi', Λ: 'lambda', Π: 'product' };
+const REF_KO = /\((?=[^()]*(?:표|그림|절|장|발견|부록|주 |식 ))[^()]{0,60}\)/g;
+const REF_EN = /\((?=[^()]*\b(?:see|cf\.|Sections?|Tables?|Figures?|Figs?\.|Eqs?\.|Equations?|Appendix|Appendices|Chapters?|Findings?|notes?)\b)[^()]{0,80}\)/g;
+function speechOf(t, lang, skipRefs) {
+  let s = t.replace(/https?:\/\/\S+?(?=[)\],;\s]|$)/g, '').replace(/www\.\S+/g, '');
+  if (skipRefs) s = s.replace(lang === 'ko' ? REF_KO : REF_EN, '').replace(/\[\d+(?:\s*[–,-]\s*\d+)*\]/g, '');
+  s = s.replace(/[₀-₉ₖⱼₛₜᵢₙ⁺⁻²³]/g, c => (lang === 'en' && c === '²') ? ' squared' : (lang === 'en' && c === '³') ? ' cubed' : SUBS[c]);
+  if (lang === 'ko') {
+    s = s.replace(/(\d)\s*–\s*(\d)/g, '$1에서 $2').replace(/(만|천|억|명|년)–(\d)/g, '$1에서 $2');
+    s = s.replace(/≥/g, ' 이상 ').replace(/≤/g, ' 이하 ').replace(/≈/g, ' 약 ').replace(/×/g, ' 곱하기 ').replace(/≠/g, ' 같지 않음 ');
+    s = s.replace(/[αβγδεζηθκλμνξπρστφχψωΣΔΓΘΩΦΨΛΠ]/g, c => ' ' + G_KO[c] + ' ');
+  } else {
+    s = s.replace(/(\d)\s*–\s*(\d)/g, '$1 to $2');
+    s = s.replace(/≥/g, ' at least ').replace(/≤/g, ' at most ').replace(/≈/g, ' about ').replace(/×/g, ' times ').replace(/≠/g, ' not equal to ');
+    s = s.replace(/[αβγδεζηθκλμνξπρστφχψωΣΔΓΘΩΦΨΛΠ]/g, c => ' ' + G_EN[c] + ' ');
+  }
+  s = s.replace(/ = /g, lang === 'ko' ? ' ' : ' equals ').replace(/[∈∀∃∂∇∝]/g, ' ');
+  return s.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').replace(/\s+([,.;:)])/g, '$1').trim();
+}
+const ABBR = /(?:\b(?:e\.g|i\.e|et al|cf|vs|Fig|Figs|Eq|Eqs|No|Nos|Vol|pp|p|Dr|Mr|Ms|Mrs|Prof|St|approx|etc|Inc|Ltd|Jr|Sr|Sec|Ch|Ref|Refs|U\.S|U\.K|a\.m|p\.m)\.|\b[A-Z]\.)$/;
+function sentences(t) {
+  const raw = t.split(/(?<=[.?!。])\s+(?=\S)/);
+  const out = [];
+  for (const piece of raw) { if (out.length && ABBR.test(out[out.length - 1])) out[out.length - 1] += ' ' + piece; else out.push(piece); }
+  return out.filter(x => x.trim());
+}
+function detectLang(text) {
+  const h = (text.match(/[가-힣]/g) || []).length, l = (text.match(/[A-Za-z]/g) || []).length;
+  return h > 0.15 * (h + l) ? 'ko' : 'en';
+}
+
+// ===================== reader state =====================
+let S = [], SECS = [], FIRST = 0, docKey = '', docLang = 'ko', totalChars = 1, charsBefore = [], current = null;
+const doc = $('doc');
+function render(name, data) {
+  stop();
+  doc.textContent = ''; S = []; SECS = [];
+  let sec = -1;
+  const addSpan = (parent, text, kind, extra = {}) => {
+    const sp = document.createElement('span'); sp.className = 's'; sp.textContent = text; sp.dataset.i = S.length;
+    parent.appendChild(sp); S.push({ el: sp, text, kind, sec, ...extra }); return sp;
+  };
+  const blocks = data.blocks.slice();
+  if (data.notes && data.notes.length) { blocks.push({ k: 'H', lv: 1, t: docLang === 'ko' ? '주' : 'Notes', notesHead: true }); blocks.push(...data.notes); }
+  for (const b of blocks) {
+    if (b.k === 'H') {
+      const h = document.createElement('h' + (b.lv + 1)); doc.appendChild(h);
+      sec = SECS.length; SECS.push({ title: b.t, first: S.length, level: b.lv });
+      addSpan(h, b.t, b.notesHead ? 'NH' : 'H');
+    } else if (b.k === 'T') {
+      const box = document.createElement('div'); box.className = 'tbl'; const tb = document.createElement('table');
+      for (const r of b.rows) {
+        const tr = document.createElement('tr');
+        for (const c of r) { const td = document.createElement('td'); td.textContent = c; tr.appendChild(td); }
+        tb.appendChild(tr);
+        const rowText = r.filter(Boolean).join(', ');
+        if (rowText) { const cell = tr.firstChild; const sp = document.createElement('span'); sp.className = 's'; sp.dataset.i = S.length; sp.textContent = cell.textContent; cell.textContent = ''; cell.appendChild(sp); S.push({ el: sp, text: rowText, kind: 'T', sec, row: tr }); }
+      }
+      box.appendChild(tb); doc.appendChild(box);
+    } else {
+      const p = document.createElement('p');
+      p.className = { C: 'cap', E: 'eq', N: 'note' }[b.k] || '';
+      const parts = b.k === 'E' ? [b.t] : sentences(b.t);
+      parts.forEach((t, k) => { addSpan(p, t, b.k); if (k < parts.length - 1) p.appendChild(document.createTextNode(' ')); });
+      doc.appendChild(p);
+    }
+  }
+  FIRST = 0;
+  { let a = 0; charsBefore = S.map(x => { const v = a; a += x.text.length; return v; }); totalChars = Math.max(1, a); }
+  for (const id of ['toc-list', 'toc-list-m']) {
+    const ol = $(id); ol.textContent = '';
+    SECS.forEach((s, k) => {
+      const li = document.createElement('li'); const bt = document.createElement('button');
+      bt.textContent = s.title; bt.className = s.level >= 2 ? 'l' + s.level : ''; bt.dataset.k = k;
+      bt.addEventListener('click', () => { $('toc-m').open = false; jump(s.first, true); });
+      li.appendChild(bt); ol.appendChild(li);
+    });
+  }
+  const hasToc = SECS.length > 1;
+  $('toc').hidden = !hasToc; $('toc-m').hidden = !hasToc; $('layout').classList.toggle('notoc', !hasToc);
+  $('doc-title').textContent = data.title || name.replace(/\.(docx|tex)$/i, '');
+  $('eyebrow').textContent = 'Readaloud · ' + name;
+  const mins = Math.round(totalChars / (docLang === 'ko' ? 7.2 : 15) / Number(rateEl.value) / 60);
+  $('stats').textContent = `문단 ${data.blocks.length} · 문장 ${S.length} · 약 ${Math.max(1, mins)}분`; $('stats').hidden = false;
+  $('empty').hidden = true; $('reader').hidden = false; $('b-open-2').hidden = false;
+  document.querySelectorAll('.ctrl button').forEach(b => { b.disabled = false; });
+  applyFilters(); loadVoices();
+  idx = Math.min(Math.max(store.get('pos:' + docKey, 0), 0), S.length - 1);
+  mark(idx, false);
+  window.scrollTo({ top: 0 });
+}
+function showMsg(t) { $('msg').textContent = t; $('msg').hidden = !t; }
+async function openFile(f) {
+  showMsg('');
+  const name = f.name || '문서';
+  const ext = (name.match(/\.([^.]+)$/) || [])[1]?.toLowerCase();
+  try {
+    let data;
+    if (ext === 'docx') data = await docxToBlocks(await f.arrayBuffer());
+    else if (ext === 'tex') data = texToBlocks(await f.text());
+    else if (ext === 'doc') throw new Error('예전 Word 형식(.doc)은 읽지 못합니다. Word에서 .docx로 저장한 뒤 열어 주세요.');
+    else throw new Error('docx 또는 tex 파일만 열 수 있습니다.');
+    if (!data.blocks.length) throw new Error('읽을 문장을 찾지 못했습니다.');
+    load(name, data, f.size || 0, true);
+  } catch (e) {
+    $('empty').hidden = false; $('reader').hidden = true; showMsg(e.message || String(e));
+  }
+}
+function load(name, data, size, save) {
+  docKey = name + ':' + size; current = { name, data, size };
+  const sample = data.blocks.slice(0, 80).map(b => b.t || '').join(' ');
+  docLang = langEl.value === 'auto' ? detectLang(sample) : langEl.value;
+  render(name, data);
+  if (data.warnings && data.warnings.length) { $('warn').hidden = false; $('warn').textContent = data.warnings.join(' '); }
+  if (save) store.set('last', { name, size, data, at: Date.now() });
+}
+
+// ===================== voices and playback =====================
+const synth = window.speechSynthesis;
+const rateEl = $('rate'), voiceEl = $('voice'), langEl = $('lang'), capEl = $('o-cap'), tblEl = $('o-tbl'), noteEl = $('o-note'), refEl = $('o-ref');
+rateEl.value = store.get('rate', 1.1); capEl.checked = store.get('cap', true); tblEl.checked = store.get('tbl', false); noteEl.checked = store.get('note', false); refEl.checked = store.get('ref', true); langEl.value = store.get('lang', 'auto');
+const showRate = () => { $('rate-v').textContent = Number(rateEl.value).toFixed(2) + '×'; };
+showRate();
+let voices = [];
+function loadVoices() {
+  if (!synth) return;
+  const all = synth.getVoices();
+  const pre = docLang === 'ko' ? /^ko/i : /^en/i;
+  const rank = v => (/natural/i.test(v.name) ? 0 : /online|google|premium|enhanced/i.test(v.name) ? 1 : 2);
+  voices = all.filter(v => pre.test(v.lang)).sort((a, b) => rank(a) - rank(b) || a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name));
+  const keep = store.get('voice:' + docLang, '');
+  voiceEl.textContent = '';
+  if (!voices.length) {
+    const o = document.createElement('option'); o.value = ''; o.textContent = all.length ? '맞는 언어의 음성 없음 (기본 음성)' : '음성을 불러오는 중'; voiceEl.appendChild(o);
+    return;
+  }
+  for (const v of voices) { const o = document.createElement('option'); o.value = v.name; o.textContent = v.name.replace(/^Microsoft /, '') + (v.localService ? '' : ' · 온라인'); voiceEl.appendChild(o); }
+  if (keep && voices.some(v => v.name === keep)) voiceEl.value = keep;
+}
+if (synth) { loadVoices(); if (synth.addEventListener) synth.addEventListener('voiceschanged', loadVoices); else synth.onvoiceschanged = loadVoices; setTimeout(loadVoices, 600); setTimeout(loadVoices, 2000); }
+else { $('warn').hidden = false; $('warn').textContent = '이 브라우저는 음성 합성을 지원하지 않습니다. Edge, Chrome, Safari에서 열어 보세요.'; }
+
+let idx = 0, playing = false, token = 0, wake = null;
+function speakable(i) {
+  const x = S[i]; if (!x) return '';
+  if (x.kind === 'E') return '';
+  if (x.kind === 'C' && !capEl.checked) return '';
+  if (x.kind === 'T' && !tblEl.checked) return '';
+  if ((x.kind === 'N' || x.kind === 'NH') && !noteEl.checked) return '';
+  return speechOf(x.text, docLang, refEl.checked);
+}
+function applyFilters() { S.forEach((x, i) => x.el.classList.toggle('off', !speakable(i))); }
+function mark(i, scroll) {
+  document.querySelectorAll('.s.now').forEach(e => e.classList.remove('now'));
+  const x = S[i]; if (!x) return;
+  x.el.classList.add('now');
+  if (scroll) x.el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  document.querySelectorAll('nav button.on').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll(`nav button[data-k="${x.sec}"]`).forEach(b => b.classList.add('on'));
+  const left = (totalChars - charsBefore[i]) / ((docLang === 'ko' ? 7.2 : 15) * Number(rateEl.value)) / 60;
+  const sec = SECS[x.sec];
+  $('now-line').innerHTML = '';
+  if (sec) { const b = document.createElement('b'); b.textContent = sec.title; $('now-line').append(b, ' · '); }
+  $('now-line').append(`문장 ${i + 1} / ${S.length} · 남은 시간 약 ${Math.max(1, Math.round(left))}분`);
+  $('meter').style.width = (100 * charsBefore[i] / totalChars).toFixed(2) + '%';
+  store.set('pos:' + docKey, i);
+}
+function speakFrom(i) {
+  if (!synth) return;
+  const my = ++token; synth.cancel();
+  const limit = docLang === 'ko' ? 90 : 160;   // long utterances stall in Chrome; speak sentences in comma-separated pieces
+  const step = j => {
+    if (my !== token || !playing) return;
+    while (j < S.length && !speakable(j)) j++;
+    if (j >= S.length) { stop(); idx = 0; mark(idx, false); return; }
+    idx = j; mark(j, true);
+    const parts = []; let cur = '';
+    for (const piece of speakable(j).split(/(?<=[,;:])\s+/)) { if (cur && (cur + ' ' + piece).length > limit) { parts.push(cur); cur = piece; } else cur = cur ? cur + ' ' + piece : piece; }
+    if (cur) parts.push(cur);
+    let q = 0;
+    const say = () => {
+      const u = new SpeechSynthesisUtterance(parts[q]);
+      u.lang = docLang === 'ko' ? 'ko-KR' : 'en-US'; u.rate = Number(rateEl.value);
+      const v = voices.find(v => v.name === voiceEl.value); if (v) { u.voice = v; u.lang = v.lang; }
+      const next = () => { if (my !== token || !playing) return; q += 1; if (q < parts.length) say(); else setTimeout(() => step(j + 1), /H/.test(S[j].kind) ? 350 : 60); };
+      u.onend = next; u.onerror = e => { if (e.error !== 'interrupted' && e.error !== 'canceled') setTimeout(next, 60); };
+      synth.speak(u);
+    };
+    say();
+  };
+  step(i);
+}
+async function keepAwake(on) {
+  try {
+    if (on && 'wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); }
+    if (!on && wake) { await wake.release(); wake = null; }
+  } catch (e) { wake = null; }
+}
+function play() { if (!synth || !S.length) return; playing = true; $('b-play').textContent = '일시정지'; $('b-play').setAttribute('aria-label', '일시정지'); keepAwake(true); speakFrom(idx); }
+function stop() { playing = false; token++; if (synth) synth.cancel(); $('b-play').textContent = '재생'; $('b-play').setAttribute('aria-label', '재생'); keepAwake(false); }
+function jump(i, scroll) { if (!S.length) return; idx = Math.min(Math.max(i, 0), S.length - 1); mark(idx, scroll); if (playing) speakFrom(idx); }
+const nextSpoken = (i, d) => { let j = i + d; while (j >= 0 && j < S.length && !speakable(j)) j += d; return Math.min(Math.max(j, 0), S.length - 1); };
+
+// ===================== events =====================
+const pick = () => $('file').click();
+$('b-open').addEventListener('click', pick); $('b-open-2').addEventListener('click', pick);
+$('file').addEventListener('change', e => { const f = e.target.files[0]; if (f) openFile(f); e.target.value = ''; });
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(t => document.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => document.addEventListener(t, e => { e.preventDefault(); if (t === 'drop' || e.target === document.documentElement) drop.classList.remove('over'); }));
+document.addEventListener('drop', e => { drop.classList.remove('over'); const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) openFile(f); });
+$('b-play').addEventListener('click', () => (playing ? stop() : play()));
+$('b-next').addEventListener('click', () => jump(nextSpoken(idx, 1), true));
+$('b-prev').addEventListener('click', () => jump(nextSpoken(idx, -1), true));
+$('b-next-sec').addEventListener('click', () => { const s = SECS[(S[idx] || {}).sec + 1]; if (s) jump(s.first, true); });
+$('b-prev-sec').addEventListener('click', () => { const k = (S[idx] || {}).sec; if (k === undefined || k < 0) return jump(0, true); const s = SECS[idx === SECS[k].first ? k - 1 : k] || SECS[0]; jump(s.first, true); });
+doc.addEventListener('click', e => { const sp = e.target.closest('.s'); if (sp && sp.dataset.i) { jump(Number(sp.dataset.i), false); if (!playing) play(); } });
+rateEl.addEventListener('input', () => { showRate(); store.set('rate', Number(rateEl.value)); });
+rateEl.addEventListener('change', () => { if (playing) speakFrom(idx); });
+voiceEl.addEventListener('change', () => { store.set('voice:' + docLang, voiceEl.value); if (playing) speakFrom(idx); });
+langEl.addEventListener('change', () => {
+  store.set('lang', langEl.value);
+  if (!S.length) return;
+  if (current) { const at = idx; load(current.name, current.data, current.size, false); jump(at, false); }
+});
+for (const [el, k] of [[capEl, 'cap'], [tblEl, 'tbl'], [noteEl, 'note'], [refEl, 'ref']]) el.addEventListener('change', () => { store.set(k, el.checked); applyFilters(); if (playing) speakFrom(idx); });
+document.addEventListener('keydown', e => {
+  if (e.target.closest('select, input, button, summary')) return;
+  if (!S.length) return;
+  if (e.code === 'Space') { e.preventDefault(); playing ? stop() : play(); }
+  else if (e.key === 'ArrowRight') jump(nextSpoken(idx, 1), true);
+  else if (e.key === 'ArrowLeft') jump(nextSpoken(idx, -1), true);
+});
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && playing) keepAwake(true); });
+
+// last document (kept only in this browser): offered, never opened automatically
+{
+  const last = store.get('last', null);
+  if (last && last.data && last.data.blocks) {
+    $('resume').hidden = false; $('resume-text').textContent = `지난 문서: ${last.name}`;
+    $('b-resume').addEventListener('click', () => load(last.name, last.data, last.size, false));
+    $('b-forget').addEventListener('click', () => { store.del('last'); $('resume').hidden = true; });
+  }
+}
+</script>
+</body>
+</html>
