@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Readaloud 문서 낭독기</title>
+<title>Readaloud</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
@@ -43,6 +43,7 @@ header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-cont
 .brand { display: grid; gap: 4px; min-width: 0; }
 .eyebrow { font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
 h1.title { font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 3.2vw, 30px); line-height: 1.3; margin: 0; text-wrap: balance; overflow-wrap: anywhere; }
+.top-ctl { display: flex; flex-wrap: wrap; gap: 8px; }
 .stats { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .btn {
   font: 500 14px var(--sans); color: var(--ink); background: var(--sheet); border: 1px solid var(--rule);
@@ -139,60 +140,60 @@ article { background: var(--sheet); border: 1px solid var(--rule); border-radius
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <span class="eyebrow" id="eyebrow">Readaloud · docx·tex 문서를 소리 내어 읽기</span>
-      <h1 class="title" id="doc-title">문서 낭독기</h1>
+      <span class="eyebrow" id="eyebrow" data-i18n="eyebrow">Readaloud · docx·tex 문서를 소리 내어 읽기</span>
+      <h1 class="title" id="doc-title" data-i18n="heading">문서 낭독기</h1>
       <span class="stats" id="stats" hidden></span>
     </div>
-    <button class="btn" id="b-open-2" hidden>다른 파일 열기</button>
+    <div class="top-ctl"><button class="btn" id="b-open-2" data-i18n="openAnother" hidden>다른 파일 열기</button><button class="btn" id="b-ui" aria-label="Interface language">English</button></div>
   </header>
 
   <section class="empty" id="empty">
     <div class="drop" id="drop">
-      <h2>읽을 문서를 여기에 끌어다 놓거나 파일을 고르세요</h2>
+      <h2 data-i18n="dropTitle">읽을 문서를 여기에 끌어다 놓거나 파일을 고르세요</h2>
       <div class="formats"><span class="chip">Word .docx</span><span class="chip">LaTeX .tex</span></div>
-      <button class="btn primary" id="b-open">파일 열기</button>
-      <p>파일은 이 브라우저 안에서만 읽고 어디로도 보내지 않습니다. 음성은 이 기기와 브라우저에 설치된 음성을 씁니다.</p>
-      <div class="resume" id="resume" hidden><span id="resume-text"></span><button class="btn" id="b-resume">이어 듣기</button><button class="btn" id="b-forget">기록 지우기</button></div>
+      <button class="btn primary" id="b-open" data-i18n="open">파일 열기</button>
+      <p data-i18n="privacy">파일은 이 브라우저 안에서만 읽고 어디로도 보내지 않습니다. 음성은 이 기기와 브라우저에 설치된 음성을 씁니다.</p>
+      <div class="resume" id="resume" hidden><span id="resume-text"></span><button class="btn" id="b-resume" data-i18n="resume">이어 듣기</button><button class="btn" id="b-forget" data-i18n="forget">기록 지우기</button></div>
       <div class="msg" id="msg" hidden></div>
     </div>
     <div class="howto">
-      <div><b>docx</b>제목 스타일(제목 1–3)을 목차로 씁니다. 표는 화면에 보이고, 표 내용 읽기를 켜면 행 단위로 읽습니다. 각주·미주는 문서 끝 "주"에 모입니다.</div>
-      <div><b>tex</b>\section 계열을 목차로 씁니다. 수식 환경은 건너뛰고, 그림·표는 캡션만 남깁니다. \input으로 불러오는 다른 파일은 포함되지 않습니다.</div>
-      <div><b>듣기</b>문장을 누르면 그 문장부터 읽습니다. 스페이스로 재생·정지하고 ←·→로 문장을 옮깁니다. 위치와 설정은 이 브라우저에 남습니다.</div>
+      <div><b>docx</b><span data-i18n="howDocx"></span></div>
+      <div><b>tex</b><span data-i18n="howTex"></span></div>
+      <div><b data-i18n="howListenB">듣기</b><span data-i18n="howListen"></span></div>
     </div>
   </section>
 
   <section id="reader" hidden>
-    <details class="toc-m" id="toc-m"><summary>목차</summary><nav aria-label="목차"><ol id="toc-list-m"></ol></nav></details>
+    <details class="toc-m" id="toc-m"><summary data-i18n="contents">목차</summary><nav data-i18n-aria="contents" aria-label="목차"><ol id="toc-list-m"></ol></nav></details>
     <div class="layout" id="layout">
-      <nav class="toc" id="toc" aria-label="목차"><ol id="toc-list"></ol></nav>
+      <nav class="toc" id="toc" data-i18n-aria="contents" aria-label="목차"><ol id="toc-list"></ol></nav>
       <article><div class="read" id="doc"></div></article>
     </div>
   </section>
   <input type="file" id="file" accept=".docx,.tex,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
 </div>
 
-<div class="player" role="region" aria-label="낭독 조작">
+<div class="player" role="region" data-i18n-aria="controls" aria-label="낭독 조작">
   <div class="in">
     <div class="meter" aria-hidden="true"><i id="meter"></i></div>
     <div class="row">
       <div class="ctrl">
-        <button id="b-prev-sec" title="이전 절" aria-label="이전 절" disabled>⏮</button>
-        <button id="b-prev" title="이전 문장 (←)" aria-label="이전 문장" disabled>‹</button>
+        <button id="b-prev-sec" data-i18n-title="prevSec" data-i18n-aria="prevSec" title="이전 절" aria-label="이전 절" disabled>⏮</button>
+        <button id="b-prev" data-i18n-title="prev" data-i18n-aria="prev" title="이전 문장 (←)" aria-label="이전 문장" disabled>‹</button>
         <button id="b-play" class="play" aria-label="재생" disabled>재생</button>
-        <button id="b-next" title="다음 문장 (→)" aria-label="다음 문장" disabled>›</button>
-        <button id="b-next-sec" title="다음 절" aria-label="다음 절" disabled>⏭</button>
+        <button id="b-next" data-i18n-title="next" data-i18n-aria="next" title="다음 문장 (→)" aria-label="다음 문장" disabled>›</button>
+        <button id="b-next-sec" data-i18n-title="nextSec" data-i18n-aria="nextSec" title="다음 절" aria-label="다음 절" disabled>⏭</button>
       </div>
-      <div class="now-line" id="now-line" aria-live="polite">문서를 열면 여기서 재생합니다.</div>
+      <div class="now-line" id="now-line" aria-live="polite" data-i18n="idle">문서를 열면 여기서 재생합니다.</div>
     </div>
     <div class="opts">
-      <label for="lang">언어 <select id="lang"><option value="auto">자동</option><option value="ko">한국어</option><option value="en">English</option></select></label>
-      <label for="voice">음성 <select id="voice"></select></label>
-      <label for="rate">속도 <input id="rate" type="range" min="0.6" max="2" step="0.05" value="1.1"><span class="rate" id="rate-v">1.10×</span></label>
-      <label for="o-cap"><input id="o-cap" type="checkbox" checked> 표·그림 제목</label>
-      <label for="o-tbl"><input id="o-tbl" type="checkbox"> 표 내용</label>
-      <label for="o-note"><input id="o-note" type="checkbox"> 주</label>
-      <label for="o-ref"><input id="o-ref" type="checkbox" checked> 괄호 속 참조 건너뛰기</label>
+      <label for="lang"><span data-i18n="lang">언어</span> <select id="lang"><option value="auto" data-i18n="auto">자동</option><option value="ko" data-i18n="korean">한국어</option><option value="en">English</option></select></label>
+      <label for="voice"><span data-i18n="voice">음성</span> <select id="voice"></select></label>
+      <label for="rate"><span data-i18n="speed">속도</span> <input id="rate" type="range" min="0.6" max="2" step="0.05" value="1.1"><span class="rate" id="rate-v">1.10×</span></label>
+      <label for="o-cap"><input id="o-cap" type="checkbox" checked> <span data-i18n="caps">표·그림 제목</span></label>
+      <label for="o-tbl"><input id="o-tbl" type="checkbox"> <span data-i18n="tbl">표 내용</span></label>
+      <label for="o-note"><input id="o-note" type="checkbox"> <span data-i18n="notes">주</span></label>
+      <label for="o-ref"><input id="o-ref" type="checkbox" checked> <span data-i18n="refs">괄호 속 참조 건너뛰기</span></label>
       <span class="warn" id="warn" hidden></span>
     </div>
   </div>
@@ -207,12 +208,52 @@ const store = {
   set(k, v) { try { localStorage.setItem('readaloud:' + k, JSON.stringify(v)); return true; } catch (e) { return false; } },
   del(k) { try { localStorage.removeItem('readaloud:' + k); } catch (e) {} },
 };
+// ===================== interface language (Korean or English, from the browser; switchable) =====================
+const I18N = {
+  ko: {
+    eyebrow: 'Readaloud · docx·tex 문서를 소리 내어 읽기', heading: '문서 낭독기', openAnother: '다른 파일 열기', other: 'English',
+    dropTitle: '읽을 문서를 여기에 끌어다 놓거나 파일을 고르세요', open: '파일 열기',
+    privacy: '파일은 이 브라우저 안에서만 읽고 어디로도 보내지 않습니다. 음성은 이 기기와 브라우저에 설치된 음성을 씁니다.',
+    resume: '이어 듣기', forget: '기록 지우기', lastDoc: '지난 문서: ',
+    howDocx: '제목 스타일(제목 1–3)을 목차로 씁니다. 표는 화면에 보이고, 표 내용 읽기를 켜면 행 단위로 읽습니다. 각주·미주는 문서 끝 "주"에 모입니다.',
+    howTex: '\\section 계열을 목차로 씁니다. 수식 환경은 건너뛰고, 그림·표는 캡션만 남깁니다. \\input으로 불러오는 다른 파일은 포함되지 않습니다.',
+    howListenB: '듣기', howListen: '문장을 누르면 그 문장부터 읽습니다. 스페이스로 재생·정지하고 ←·→로 문장을 옮깁니다. 위치와 설정은 이 브라우저에 남습니다.',
+    contents: '목차', controls: '낭독 조작', prevSec: '이전 절', prev: '이전 문장 (←)', next: '다음 문장 (→)', nextSec: '다음 절', play: '재생', pause: '일시정지',
+    idle: '문서를 열면 여기서 재생합니다.', lang: '언어', auto: '자동', korean: '한국어', voice: '음성', speed: '속도', caps: '표·그림 제목', tbl: '표 내용', notes: '주', refs: '괄호 속 참조 건너뛰기',
+    stats: (p, n, m) => `문단 ${p} · 문장 ${n} · 약 ${m}분`, now: (i, n, m) => `문장 ${i} / ${n} · 남은 시간 약 ${m}분`,
+    voiceNone: '맞는 언어의 음성 없음 (기본 음성)', voiceLoading: '음성을 불러오는 중', online: ' · 온라인',
+    noSynth: '이 브라우저는 음성 합성을 지원하지 않습니다. Edge, Chrome, Safari에서 열어 보세요.',
+    errLib: 'docx 변환 라이브러리(vendor/mammoth.browser.min.js)를 불러오지 못했습니다.', errDoc: '예전 Word 형식(.doc)은 읽지 못합니다. Word에서 .docx로 저장한 뒤 열어 주세요.',
+    errType: 'docx 또는 tex 파일만 열 수 있습니다.', errEmpty: '읽을 문장을 찾지 못했습니다.',
+    warnInput: '이 파일은 \\input·\\include로 다른 파일을 불러옵니다. 그 내용은 포함되지 않습니다.', eq: '[수식]',
+  },
+  en: {
+    eyebrow: 'Readaloud · Listen to .docx and .tex documents', heading: 'Read documents aloud', openAnother: 'Open another file', other: '한국어',
+    dropTitle: 'Drop a document here, or choose a file', open: 'Open file',
+    privacy: 'Files are read inside this browser and are not sent anywhere. Speech uses the voices installed on this device and browser.',
+    resume: 'Resume', forget: 'Clear', lastDoc: 'Last document: ',
+    howDocx: 'Heading 1–3 styles become the contents. Tables are shown on screen and read row by row when Table cells is on. Footnotes and endnotes are gathered under Notes at the end.',
+    howTex: 'The \\section commands become the contents. Equation environments are skipped, and figures and tables keep only their captions. Files pulled in with \\input are not included.',
+    howListenB: 'Listening', howListen: 'Click a sentence to start there. Space plays or pauses, and ← → move by sentence. Your position and settings stay in this browser.',
+    contents: 'Contents', controls: 'Playback controls', prevSec: 'Previous section', prev: 'Previous sentence (←)', next: 'Next sentence (→)', nextSec: 'Next section', play: 'Play', pause: 'Pause',
+    idle: 'Open a document to start.', lang: 'Language', auto: 'Auto', korean: 'Korean', voice: 'Voice', speed: 'Speed', caps: 'Captions', tbl: 'Table cells', notes: 'Notes', refs: 'Skip cross-references',
+    stats: (p, n, m) => `${p} paragraphs · ${n} sentences · about ${m} min`, now: (i, n, m) => `Sentence ${i} of ${n} · about ${m} min left`,
+    voiceNone: 'No voice for this language (default voice)', voiceLoading: 'Loading voices', online: ' · online',
+    noSynth: 'This browser does not support speech synthesis. Try Edge, Chrome, or Safari.',
+    errLib: 'The docx converter (vendor/mammoth.browser.min.js) could not be loaded.', errDoc: 'The old Word format (.doc) cannot be read. Save the file as .docx in Word and open it again.',
+    errType: 'Only .docx and .tex files can be opened.', errEmpty: 'No readable text was found.',
+    warnInput: 'This file pulls in other files with \\input or \\include. Their content is not included.', eq: '[equation]',
+  },
+};
+let UI = (() => { try { const v = localStorage.getItem('readaloud:ui'); if (v) return JSON.parse(v); } catch (e) {} return /^ko\b/i.test(navigator.language || '') ? 'ko' : 'en'; })();
+const t = (k, ...a) => { const v = (I18N[UI] || I18N.en)[k]; return typeof v === 'function' ? v(...a) : v; };
+class UIError extends Error { constructor(key) { super(key); this.key = key; } }
 const clean = s => s.replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
 const CAP_RE = /^(?:Table|Figure|Fig\.|Exhibit|Chart|표|그림|도표)\s*[A-Z]?[\d.]+\s*[.:]/;
 
 // ===================== docx (mammoth, in the browser) =====================
 async function docxToBlocks(buf) {
-  if (!window.mammoth) throw new Error('docx 변환 라이브러리(vendor/mammoth.browser.min.js)를 불러오지 못했습니다.');
+  if (!window.mammoth) throw new UIError('errLib');
   const res = await mammoth.convertToHtml({ arrayBuffer: buf }, { convertImage: mammoth.images.imgElement(() => Promise.resolve({ src: '' })) });
   const dom = new DOMParser().parseFromString('<div>' + res.value + '</div>', 'text/html').body.firstChild;
   dom.querySelectorAll('sup').forEach(s => { if (s.querySelector('a[href^="#footnote-"], a[href^="#endnote-"]')) s.remove(); });
@@ -284,7 +325,7 @@ function texToBlocks(src) {
   { const m = s.match(/\\title\s*(?:\[[^\]]*\])?\s*\{/); if (m) title = clean(texInline(readGroup(s, m.index + m[0].length - 1)[0])); }
   const b = s.indexOf('\\begin{document}'), e = s.lastIndexOf('\\end{document}');
   if (b >= 0) s = s.slice(b + 16, e > b ? e : undefined);
-  if (/\\(input|include)\s*\{/.test(s)) warnings.push('이 파일은 \\input·\\include로 다른 파일을 불러옵니다. 그 내용은 포함되지 않습니다.');
+  if (/\\(input|include)\s*\{/.test(s)) warnings.push('warnInput');
   // verbatim-like and graphics environments: drop with their content
   s = s.replace(/\\begin\{(verbatim\*?|lstlisting|minted|tikzpicture|pgfpicture|comment|thebibliography|algorithmic)\}[\s\S]*?\\end\{\1\}/g, '\n\n');
   // floats: keep only the caption
@@ -313,7 +354,7 @@ function texToBlocks(src) {
   for (const raw of s.split(/\n\s*\n/)) {
     const m = raw.trim().match(/^@@(H[123]|CAP|EQ)@@([\s\S]*)$/);
     if (m) {
-      if (m[1] === 'EQ') { blocks.push({ k: 'E', t: '[수식]' }); continue; }
+      if (m[1] === 'EQ') { blocks.push({ k: 'E', t: '' }); continue; }
       const t = clean(texInline(m[2])); if (!t) continue;
       if (m[1] === 'CAP') blocks.push({ k: 'C', t }); else blocks.push({ k: 'H', lv: +m[1][1], t });
       continue;
@@ -374,7 +415,7 @@ function detectLang(text) {
 }
 
 // ===================== reader state =====================
-let S = [], SECS = [], FIRST = 0, docKey = '', docLang = 'ko', totalChars = 1, charsBefore = [], current = null;
+let S = [], SECS = [], FIRST = 0, docKey = '', docLang = 'ko', totalChars = 1, charsBefore = [], current = null, statsArgs = null;
 const doc = $('doc');
 function render(name, data) {
   stop();
@@ -404,7 +445,7 @@ function render(name, data) {
     } else {
       const p = document.createElement('p');
       p.className = { C: 'cap', E: 'eq', N: 'note' }[b.k] || '';
-      const parts = b.k === 'E' ? [b.t] : sentences(b.t);
+      const parts = b.k === 'E' ? [t('eq')] : sentences(b.t);
       parts.forEach((t, k) => { addSpan(p, t, b.k); if (k < parts.length - 1) p.appendChild(document.createTextNode(' ')); });
       doc.appendChild(p);
     }
@@ -425,7 +466,7 @@ function render(name, data) {
   $('doc-title').textContent = data.title || name.replace(/\.(docx|tex)$/i, '');
   $('eyebrow').textContent = 'Readaloud · ' + name;
   const mins = Math.round(totalChars / (docLang === 'ko' ? 7.2 : 15) / Number(rateEl.value) / 60);
-  $('stats').textContent = `문단 ${data.blocks.length} · 문장 ${S.length} · 약 ${Math.max(1, mins)}분`; $('stats').hidden = false;
+  statsArgs = [data.blocks.length, S.length, Math.max(1, mins)]; $('stats').textContent = t('stats', ...statsArgs); $('stats').hidden = false;
   $('empty').hidden = true; $('reader').hidden = false; $('b-open-2').hidden = false;
   document.querySelectorAll('.ctrl button').forEach(b => { b.disabled = false; });
   applyFilters(); loadVoices();
@@ -436,18 +477,18 @@ function render(name, data) {
 function showMsg(t) { $('msg').textContent = t; $('msg').hidden = !t; }
 async function openFile(f) {
   showMsg('');
-  const name = f.name || '문서';
+  const name = f.name || 'document';
   const ext = (name.match(/\.([^.]+)$/) || [])[1]?.toLowerCase();
   try {
     let data;
     if (ext === 'docx') data = await docxToBlocks(await f.arrayBuffer());
     else if (ext === 'tex') data = texToBlocks(await f.text());
-    else if (ext === 'doc') throw new Error('예전 Word 형식(.doc)은 읽지 못합니다. Word에서 .docx로 저장한 뒤 열어 주세요.');
-    else throw new Error('docx 또는 tex 파일만 열 수 있습니다.');
-    if (!data.blocks.length) throw new Error('읽을 문장을 찾지 못했습니다.');
+    else if (ext === 'doc') throw new UIError('errDoc');
+    else throw new UIError('errType');
+    if (!data.blocks.length) throw new UIError('errEmpty');
     load(name, data, f.size || 0, true);
   } catch (e) {
-    $('empty').hidden = false; $('reader').hidden = true; showMsg(e.message || String(e));
+    $('empty').hidden = false; $('reader').hidden = true; showMsg(e.key ? t(e.key) : (e.message || String(e)));
   }
 }
 function load(name, data, size, save) {
@@ -455,7 +496,7 @@ function load(name, data, size, save) {
   const sample = data.blocks.slice(0, 80).map(b => b.t || '').join(' ');
   docLang = langEl.value === 'auto' ? detectLang(sample) : langEl.value;
   render(name, data);
-  if (data.warnings && data.warnings.length) { $('warn').hidden = false; $('warn').textContent = data.warnings.join(' '); }
+  if (data.warnings && data.warnings.length) { $('warn').hidden = false; $('warn').textContent = data.warnings.map(w => t(w) || w).join(' '); }
   if (save) store.set('last', { name, size, data, at: Date.now() });
 }
 
@@ -475,14 +516,14 @@ function loadVoices() {
   const keep = store.get('voice:' + docLang, '');
   voiceEl.textContent = '';
   if (!voices.length) {
-    const o = document.createElement('option'); o.value = ''; o.textContent = all.length ? '맞는 언어의 음성 없음 (기본 음성)' : '음성을 불러오는 중'; voiceEl.appendChild(o);
+    const o = document.createElement('option'); o.value = ''; o.textContent = all.length ? t('voiceNone') : t('voiceLoading'); voiceEl.appendChild(o);
     return;
   }
-  for (const v of voices) { const o = document.createElement('option'); o.value = v.name; o.textContent = v.name.replace(/^Microsoft /, '') + (v.localService ? '' : ' · 온라인'); voiceEl.appendChild(o); }
+  for (const v of voices) { const o = document.createElement('option'); o.value = v.name; o.textContent = v.name.replace(/^Microsoft /, '') + (v.localService ? '' : t('online')); voiceEl.appendChild(o); }
   if (keep && voices.some(v => v.name === keep)) voiceEl.value = keep;
 }
 if (synth) { loadVoices(); if (synth.addEventListener) synth.addEventListener('voiceschanged', loadVoices); else synth.onvoiceschanged = loadVoices; setTimeout(loadVoices, 600); setTimeout(loadVoices, 2000); }
-else { $('warn').hidden = false; $('warn').textContent = '이 브라우저는 음성 합성을 지원하지 않습니다. Edge, Chrome, Safari에서 열어 보세요.'; }
+else { $('warn').hidden = false; $('warn').dataset.key = 'noSynth'; $('warn').textContent = t('noSynth'); }
 
 let idx = 0, playing = false, token = 0, wake = null;
 function speakable(i) {
@@ -505,7 +546,7 @@ function mark(i, scroll) {
   const sec = SECS[x.sec];
   $('now-line').innerHTML = '';
   if (sec) { const b = document.createElement('b'); b.textContent = sec.title; $('now-line').append(b, ' · '); }
-  $('now-line').append(`문장 ${i + 1} / ${S.length} · 남은 시간 약 ${Math.max(1, Math.round(left))}분`);
+  $('now-line').append(t('now', i + 1, S.length, Math.max(1, Math.round(left))));
   $('meter').style.width = (100 * charsBefore[i] / totalChars).toFixed(2) + '%';
   store.set('pos:' + docKey, i);
 }
@@ -540,8 +581,8 @@ async function keepAwake(on) {
     if (!on && wake) { await wake.release(); wake = null; }
   } catch (e) { wake = null; }
 }
-function play() { if (!synth || !S.length) return; playing = true; $('b-play').textContent = '일시정지'; $('b-play').setAttribute('aria-label', '일시정지'); keepAwake(true); speakFrom(idx); }
-function stop() { playing = false; token++; if (synth) synth.cancel(); $('b-play').textContent = '재생'; $('b-play').setAttribute('aria-label', '재생'); keepAwake(false); }
+function play() { if (!synth || !S.length) return; playing = true; $('b-play').textContent = t('pause'); $('b-play').setAttribute('aria-label', t('pause')); keepAwake(true); speakFrom(idx); }
+function stop() { playing = false; token++; if (synth) synth.cancel(); $('b-play').textContent = t('play'); $('b-play').setAttribute('aria-label', t('play')); keepAwake(false); }
 function jump(i, scroll) { if (!S.length) return; idx = Math.min(Math.max(i, 0), S.length - 1); mark(idx, scroll); if (playing) speakFrom(idx); }
 const nextSpoken = (i, d) => { let j = i + d; while (j >= 0 && j < S.length && !speakable(j)) j += d; return Math.min(Math.max(j, 0), S.length - 1); };
 
@@ -581,11 +622,31 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 {
   const last = store.get('last', null);
   if (last && last.data && last.data.blocks) {
-    $('resume').hidden = false; $('resume-text').textContent = `지난 문서: ${last.name}`;
+    $('resume').hidden = false; $('resume-text').dataset.name = last.name; $('resume-text').textContent = t('lastDoc') + last.name;
     $('b-resume').addEventListener('click', () => load(last.name, last.data, last.size, false));
     $('b-forget').addEventListener('click', () => { store.del('last'); $('resume').hidden = true; });
   }
 }
+
+function applyUI() {
+  document.documentElement.lang = UI;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    if ((el.id === 'doc-title' || el.id === 'eyebrow') && current) return;   // a document is open: keep its name
+    if (el.id === 'now-line' && S.length) return;
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+  $('b-ui').textContent = t('other');
+  $('b-play').textContent = playing ? t('pause') : t('play'); $('b-play').setAttribute('aria-label', $('b-play').textContent);
+  if (statsArgs) $('stats').textContent = t('stats', ...statsArgs);
+  if ($('resume-text').dataset.name) $('resume-text').textContent = t('lastDoc') + $('resume-text').dataset.name;
+  if ($('warn').dataset.key) $('warn').textContent = t($('warn').dataset.key);
+  if (S.length) { mark(idx, false); S.forEach(x => { if (x.kind === 'E') x.el.textContent = t('eq'); }); }
+  loadVoices();
+}
+$('b-ui').addEventListener('click', () => { UI = UI === 'ko' ? 'en' : 'ko'; try { localStorage.setItem('readaloud:ui', JSON.stringify(UI)); } catch (e) {} applyUI(); });
+applyUI();
 </script>
 </body>
 </html>
