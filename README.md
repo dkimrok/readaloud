@@ -1,8 +1,6 @@
 # Readaloud
 
 <a href="https://doi.org/10.5281/zenodo.23954427"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.23954427.svg"></a>
-
-`readaloud_banner.png`
   
 Readaloud reads Word (.docx) and LaTeX (.tex) documents aloud in the browser, one sentence at a time. It works in English and Korean. The interface comes in both languages, and in a document that mixes the two, each sentence is read with a voice for its own language. No document is included; you open your own.
 
@@ -10,7 +8,7 @@ Readaloud reads Word (.docx) and LaTeX (.tex) documents aloud in the browser, on
 
 ## Use
 
-1. Open `index.html` in a browser. With GitHub Pages turned on, open `https://<username>.github.io/readaloud/`.
+1. Open `index.html` in a browser. With GitHub Pages turned on, open `https://dkimrok.github.io/readaloud/`.
 2. Drop a .docx or .tex file on the page, or choose one with **Open file**.
 3. Press **Play**, or click any sentence to start from there.
 
