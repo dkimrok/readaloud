@@ -67,7 +67,7 @@ Readaloud는 Word(.docx)와 LaTeX(.tex) 문서를 브라우저에서 한 문장�
 
 ### 쓰는 법
 
-1. `index.html`을 브라우저로 엽니다. GitHub Pages를 켰다면 `https://<사용자명>.github.io/readaloud/`로 엽니다.
+1. `index.html`을 브라우저로 엽니다. GitHub Pages를 켰다면 `https://dkimrok.github.io/readaloud/`로 엽니다.
 2. 파일을 끌어다 놓거나 **파일 열기**로 .docx나 .tex를 고릅니다.
 3. **재생**을 누르거나 아무 문장이나 누르면 그 문장부터 읽습니다.
 
