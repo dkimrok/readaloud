@@ -1,5 +1,7 @@
 # Readaloud
 
+  <a href="https://doi.org/10.5281/zenodo.21714795"><img alt="DOI" src="https://zenodo.org/badge/DOI/10.5281/zenodo.21714795.svg"></a>
+  
 Readaloud reads Word (.docx) and LaTeX (.tex) documents aloud in the browser, one sentence at a time. It works in English and Korean. The interface comes in both languages, and in a document that mixes the two, each sentence is read with a voice for its own language. No document is included; you open your own.
 
 [한국어 안내는 아래에 있습니다.](#한국어)
