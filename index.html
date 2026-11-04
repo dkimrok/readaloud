@@ -187,8 +187,9 @@ article { background: var(--sheet); border: 1px solid var(--rule); border-radius
       <div class="now-line" id="now-line" aria-live="polite" data-i18n="idle">문서를 열면 여기서 재생합니다.</div>
     </div>
     <div class="opts">
-      <label for="lang"><span data-i18n="lang">언어</span> <select id="lang"><option value="auto" data-i18n="auto">자동</option><option value="ko" data-i18n="korean">한국어</option><option value="en">English</option></select></label>
-      <label for="voice"><span data-i18n="voice">음성</span> <select id="voice"></select></label>
+      <label for="lang"><span data-i18n="lang">읽기 언어</span> <select id="lang"><option value="auto" data-i18n="auto">자동(문장별)</option><option value="ko" data-i18n="korean">한국어</option><option value="en" data-i18n="english">영어</option></select></label>
+      <label for="voice-ko" id="lab-ko"><span data-i18n="voiceKo">한국어 음성</span> <select id="voice-ko"></select></label>
+      <label for="voice-en" id="lab-en"><span data-i18n="voiceEn">영어 음성</span> <select id="voice-en"></select></label>
       <label for="rate"><span data-i18n="speed">속도</span> <input id="rate" type="range" min="0.6" max="2" step="0.05" value="1.1"><span class="rate" id="rate-v">1.10×</span></label>
       <label for="o-cap"><input id="o-cap" type="checkbox" checked> <span data-i18n="caps">표·그림 제목</span></label>
       <label for="o-tbl"><input id="o-tbl" type="checkbox"> <span data-i18n="tbl">표 내용</span></label>
@@ -217,9 +218,9 @@ const I18N = {
     resume: '이어 듣기', forget: '기록 지우기', lastDoc: '지난 문서: ',
     howDocx: '제목 스타일(제목 1–3)을 목차로 씁니다. 표는 화면에 보이고, 표 내용 읽기를 켜면 행 단위로 읽습니다. 각주·미주는 문서 끝 "주"에 모입니다.',
     howTex: '\\section 계열을 목차로 씁니다. 수식 환경은 건너뛰고, 그림·표는 캡션만 남깁니다. \\input으로 불러오는 다른 파일은 포함되지 않습니다.',
-    howListenB: '듣기', howListen: '문장을 누르면 그 문장부터 읽습니다. 스페이스로 재생·정지하고 ←·→로 문장을 옮깁니다. 위치와 설정은 이 브라우저에 남습니다.',
+    howListenB: '듣기', howListen: '문장을 누르면 그 문장부터 읽습니다. 한국어 문장과 영어 문장은 각각의 음성으로 읽습니다. 스페이스로 재생·정지하고 ←·→로 문장을 옮깁니다. 위치와 설정은 이 브라우저에 남습니다.',
     contents: '목차', controls: '낭독 조작', prevSec: '이전 절', prev: '이전 문장 (←)', next: '다음 문장 (→)', nextSec: '다음 절', play: '재생', pause: '일시정지',
-    idle: '문서를 열면 여기서 재생합니다.', lang: '언어', auto: '자동', korean: '한국어', voice: '음성', speed: '속도', caps: '표·그림 제목', tbl: '표 내용', notes: '주', refs: '괄호 속 참조 건너뛰기',
+    idle: '문서를 열면 여기서 재생합니다.', lang: '읽기 언어', auto: '자동(문장별)', korean: '한국어', english: '영어', voiceKo: '한국어 음성', voiceEn: '영어 음성', speed: '속도', caps: '표·그림 제목', tbl: '표 내용', notes: '주', refs: '괄호 속 참조 건너뛰기',
     stats: (p, n, m) => `문단 ${p} · 문장 ${n} · 약 ${m}분`, now: (i, n, m) => `문장 ${i} / ${n} · 남은 시간 약 ${m}분`,
     voiceNone: '맞는 언어의 음성 없음 (기본 음성)', voiceLoading: '음성을 불러오는 중', online: ' · 온라인',
     noSynth: '이 브라우저는 음성 합성을 지원하지 않습니다. Edge, Chrome, Safari에서 열어 보세요.',
@@ -234,9 +235,9 @@ const I18N = {
     resume: 'Resume', forget: 'Clear', lastDoc: 'Last document: ',
     howDocx: 'Heading 1–3 styles become the contents. Tables are shown on screen and read row by row when Table cells is on. Footnotes and endnotes are gathered under Notes at the end.',
     howTex: 'The \\section commands become the contents. Equation environments are skipped, and figures and tables keep only their captions. Files pulled in with \\input are not included.',
-    howListenB: 'Listening', howListen: 'Click a sentence to start there. Space plays or pauses, and ← → move by sentence. Your position and settings stay in this browser.',
+    howListenB: 'Listening', howListen: 'Click a sentence to start there. Korean and English sentences are read with their own voices. Space plays or pauses, and ← → move by sentence. Your position and settings stay in this browser.',
     contents: 'Contents', controls: 'Playback controls', prevSec: 'Previous section', prev: 'Previous sentence (←)', next: 'Next sentence (→)', nextSec: 'Next section', play: 'Play', pause: 'Pause',
-    idle: 'Open a document to start.', lang: 'Language', auto: 'Auto', korean: 'Korean', voice: 'Voice', speed: 'Speed', caps: 'Captions', tbl: 'Table cells', notes: 'Notes', refs: 'Skip cross-references',
+    idle: 'Open a document to start.', lang: 'Reading language', auto: 'Auto (per sentence)', korean: 'Korean', english: 'English', voiceKo: 'Korean voice', voiceEn: 'English voice', speed: 'Speed', caps: 'Captions', tbl: 'Table cells', notes: 'Notes', refs: 'Skip cross-references',
     stats: (p, n, m) => `${p} paragraphs · ${n} sentences · about ${m} min`, now: (i, n, m) => `Sentence ${i} of ${n} · about ${m} min left`,
     voiceNone: 'No voice for this language (default voice)', voiceLoading: 'Loading voices', online: ' · online',
     noSynth: 'This browser does not support speech synthesis. Try Edge, Chrome, or Safari.',
@@ -400,7 +401,7 @@ function speechOf(t, lang, skipRefs) {
     s = s.replace(/[αβγδεζηθκλμνξπρστφχψωΣΔΓΘΩΦΨΛΠ]/g, c => ' ' + G_EN[c] + ' ');
   }
   s = s.replace(/ = /g, lang === 'ko' ? ' ' : ' equals ').replace(/[∈∀∃∂∇∝]/g, ' ');
-  return s.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').replace(/\s+([,.;:)])/g, '$1').trim();
+  return s.replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').replace(/\s+([,.;:)])/g, '$1').replace(/\.{2}(?!\.)/g, '.').trim();
 }
 const ABBR = /(?:\b(?:e\.g|i\.e|et al|cf|vs|Fig|Figs|Eq|Eqs|No|Nos|Vol|pp|p|Dr|Mr|Ms|Mrs|Prof|St|approx|etc|Inc|Ltd|Jr|Sr|Sec|Ch|Ref|Refs|U\.S|U\.K|a\.m|p\.m)\.|\b[A-Z]\.)$/;
 function sentences(t) {
@@ -409,13 +410,15 @@ function sentences(t) {
   for (const piece of raw) { if (out.length && ABBR.test(out[out.length - 1])) out[out.length - 1] += ' ' + piece; else out.push(piece); }
   return out.filter(x => x.trim());
 }
-function detectLang(text) {
-  const h = (text.match(/[가-힣]/g) || []).length, l = (text.match(/[A-Za-z]/g) || []).length;
+function detectLang(text, fallback = 'en') {
+  const h = (text.match(/[\uac00-\ud7a3\u3131-\u318e]/g) || []).length, l = (text.match(/[A-Za-z]/g) || []).length;
+  if (h + l < 3) return fallback;                                  // numbers, symbols, very short labels: keep the neighbour's language
   return h > 0.15 * (h + l) ? 'ko' : 'en';
 }
+const CPS = { ko: 7.2, en: 15 };                                     // characters per second at 1x, for time estimates
 
 // ===================== reader state =====================
-let S = [], SECS = [], FIRST = 0, docKey = '', docLang = 'ko', totalChars = 1, charsBefore = [], current = null, statsArgs = null;
+let S = [], SECS = [], FIRST = 0, docKey = '', docLang = 'ko', totalSecs = 1, secsBefore = [], current = null, statsArgs = null;
 const doc = $('doc');
 function render(name, data) {
   stop();
@@ -451,7 +454,10 @@ function render(name, data) {
     }
   }
   FIRST = 0;
-  { let a = 0; charsBefore = S.map(x => { const v = a; a += x.text.length; return v; }); totalChars = Math.max(1, a); }
+  // reading language of each sentence (or of the whole document when one is chosen)
+  { const forced = langEl.value === 'auto' ? null : langEl.value; let prev = docLang;
+    for (const x of S) { x.lang = forced || detectLang(x.text, prev); prev = x.lang; x.el.lang = x.lang; } }
+  { let a = 0; secsBefore = S.map(x => { const v = a; a += x.text.length / CPS[x.lang]; return v; }); totalSecs = Math.max(1, a); }
   for (const id of ['toc-list', 'toc-list-m']) {
     const ol = $(id); ol.textContent = '';
     SECS.forEach((s, k) => {
@@ -465,7 +471,7 @@ function render(name, data) {
   $('toc').hidden = !hasToc; $('toc-m').hidden = !hasToc; $('layout').classList.toggle('notoc', !hasToc);
   $('doc-title').textContent = data.title || name.replace(/\.(docx|tex)$/i, '');
   $('eyebrow').textContent = 'Readaloud · ' + name;
-  const mins = Math.round(totalChars / (docLang === 'ko' ? 7.2 : 15) / Number(rateEl.value) / 60);
+  const mins = Math.round(totalSecs / Number(rateEl.value) / 60);
   statsArgs = [data.blocks.length, S.length, Math.max(1, mins)]; $('stats').textContent = t('stats', ...statsArgs); $('stats').hidden = false;
   $('empty').hidden = true; $('reader').hidden = false; $('b-open-2').hidden = false;
   document.querySelectorAll('.ctrl button').forEach(b => { b.disabled = false; });
@@ -494,7 +500,7 @@ async function openFile(f) {
 function load(name, data, size, save) {
   docKey = name + ':' + size; current = { name, data, size };
   const sample = data.blocks.slice(0, 80).map(b => b.t || '').join(' ');
-  docLang = langEl.value === 'auto' ? detectLang(sample) : langEl.value;
+  docLang = langEl.value === 'auto' ? detectLang(sample, 'en') : langEl.value;
   render(name, data);
   if (data.warnings && data.warnings.length) { $('warn').hidden = false; $('warn').textContent = data.warnings.map(w => t(w) || w).join(' '); }
   if (save) store.set('last', { name, size, data, at: Date.now() });
@@ -502,25 +508,30 @@ function load(name, data, size, save) {
 
 // ===================== voices and playback =====================
 const synth = window.speechSynthesis;
-const rateEl = $('rate'), voiceEl = $('voice'), langEl = $('lang'), capEl = $('o-cap'), tblEl = $('o-tbl'), noteEl = $('o-note'), refEl = $('o-ref');
+const rateEl = $('rate'), voiceSel = { ko: $('voice-ko'), en: $('voice-en') }, langEl = $('lang'), capEl = $('o-cap'), tblEl = $('o-tbl'), noteEl = $('o-note'), refEl = $('o-ref');
 rateEl.value = store.get('rate', 1.1); capEl.checked = store.get('cap', true); tblEl.checked = store.get('tbl', false); noteEl.checked = store.get('note', false); refEl.checked = store.get('ref', true); langEl.value = store.get('lang', 'auto');
 const showRate = () => { $('rate-v').textContent = Number(rateEl.value).toFixed(2) + '×'; };
 showRate();
-let voices = [];
+const voices = { ko: [], en: [] };
 function loadVoices() {
+  // the voice list for a language is shown only when the open document has sentences in that language
+  const present = { ko: S.some(x => x.lang === 'ko'), en: S.some(x => x.lang === 'en') };
+  for (const lg of ['ko', 'en']) $('lab-' + lg).hidden = S.length ? !present[lg] : false;
   if (!synth) return;
   const all = synth.getVoices();
-  const pre = docLang === 'ko' ? /^ko/i : /^en/i;
   const rank = v => (/natural/i.test(v.name) ? 0 : /online|google|premium|enhanced/i.test(v.name) ? 1 : 2);
-  voices = all.filter(v => pre.test(v.lang)).sort((a, b) => rank(a) - rank(b) || a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name));
-  const keep = store.get('voice:' + docLang, '');
-  voiceEl.textContent = '';
-  if (!voices.length) {
-    const o = document.createElement('option'); o.value = ''; o.textContent = all.length ? t('voiceNone') : t('voiceLoading'); voiceEl.appendChild(o);
-    return;
+  for (const lg of ['ko', 'en']) {
+    const sel = voiceSel[lg], pre = new RegExp('^' + lg, 'i');
+    voices[lg] = all.filter(v => pre.test(v.lang)).sort((a, b) => rank(a) - rank(b) || a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name));
+    const keep = sel.value || store.get('voice:' + lg, '');
+    sel.textContent = '';
+    if (!voices[lg].length) {
+      const o = document.createElement('option'); o.value = ''; o.textContent = all.length ? t('voiceNone') : t('voiceLoading'); sel.appendChild(o);
+      continue;
+    }
+    for (const v of voices[lg]) { const o = document.createElement('option'); o.value = v.name; o.textContent = v.name.replace(/^Microsoft /, '') + (v.localService ? '' : t('online')); sel.appendChild(o); }
+    if (keep && voices[lg].some(v => v.name === keep)) sel.value = keep;
   }
-  for (const v of voices) { const o = document.createElement('option'); o.value = v.name; o.textContent = v.name.replace(/^Microsoft /, '') + (v.localService ? '' : t('online')); voiceEl.appendChild(o); }
-  if (keep && voices.some(v => v.name === keep)) voiceEl.value = keep;
 }
 if (synth) { loadVoices(); if (synth.addEventListener) synth.addEventListener('voiceschanged', loadVoices); else synth.onvoiceschanged = loadVoices; setTimeout(loadVoices, 600); setTimeout(loadVoices, 2000); }
 else { $('warn').hidden = false; $('warn').dataset.key = 'noSynth'; $('warn').textContent = t('noSynth'); }
@@ -532,7 +543,7 @@ function speakable(i) {
   if (x.kind === 'C' && !capEl.checked) return '';
   if (x.kind === 'T' && !tblEl.checked) return '';
   if ((x.kind === 'N' || x.kind === 'NH') && !noteEl.checked) return '';
-  return speechOf(x.text, docLang, refEl.checked);
+  return speechOf(x.text, x.lang, refEl.checked);
 }
 function applyFilters() { S.forEach((x, i) => x.el.classList.toggle('off', !speakable(i))); }
 function mark(i, scroll) {
@@ -542,31 +553,31 @@ function mark(i, scroll) {
   if (scroll) x.el.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   document.querySelectorAll('nav button.on').forEach(b => b.classList.remove('on'));
   document.querySelectorAll(`nav button[data-k="${x.sec}"]`).forEach(b => b.classList.add('on'));
-  const left = (totalChars - charsBefore[i]) / ((docLang === 'ko' ? 7.2 : 15) * Number(rateEl.value)) / 60;
+  const left = (totalSecs - secsBefore[i]) / Number(rateEl.value) / 60;
   const sec = SECS[x.sec];
   $('now-line').innerHTML = '';
   if (sec) { const b = document.createElement('b'); b.textContent = sec.title; $('now-line').append(b, ' · '); }
   $('now-line').append(t('now', i + 1, S.length, Math.max(1, Math.round(left))));
-  $('meter').style.width = (100 * charsBefore[i] / totalChars).toFixed(2) + '%';
+  $('meter').style.width = (100 * secsBefore[i] / totalSecs).toFixed(2) + '%';
   store.set('pos:' + docKey, i);
 }
 function speakFrom(i) {
   if (!synth) return;
   const my = ++token; synth.cancel();
-  const limit = docLang === 'ko' ? 90 : 160;   // long utterances stall in Chrome; speak sentences in comma-separated pieces
   const step = j => {
     if (my !== token || !playing) return;
     while (j < S.length && !speakable(j)) j++;
     if (j >= S.length) { stop(); idx = 0; mark(idx, false); return; }
     idx = j; mark(j, true);
+    const lg = S[j].lang, limit = lg === 'ko' ? 90 : 160;   // long utterances stall in Chrome; speak sentences in comma-separated pieces
     const parts = []; let cur = '';
     for (const piece of speakable(j).split(/(?<=[,;:])\s+/)) { if (cur && (cur + ' ' + piece).length > limit) { parts.push(cur); cur = piece; } else cur = cur ? cur + ' ' + piece : piece; }
     if (cur) parts.push(cur);
     let q = 0;
     const say = () => {
       const u = new SpeechSynthesisUtterance(parts[q]);
-      u.lang = docLang === 'ko' ? 'ko-KR' : 'en-US'; u.rate = Number(rateEl.value);
-      const v = voices.find(v => v.name === voiceEl.value); if (v) { u.voice = v; u.lang = v.lang; }
+      u.lang = lg === 'ko' ? 'ko-KR' : 'en-US'; u.rate = Number(rateEl.value);
+      const v = voices[lg].find(v => v.name === voiceSel[lg].value); if (v) { u.voice = v; u.lang = v.lang; }
       const next = () => { if (my !== token || !playing) return; q += 1; if (q < parts.length) say(); else setTimeout(() => step(j + 1), /H/.test(S[j].kind) ? 350 : 60); };
       u.onend = next; u.onerror = e => { if (e.error !== 'interrupted' && e.error !== 'canceled') setTimeout(next, 60); };
       synth.speak(u);
@@ -602,7 +613,7 @@ $('b-prev-sec').addEventListener('click', () => { const k = (S[idx] || {}).sec; 
 doc.addEventListener('click', e => { const sp = e.target.closest('.s'); if (sp && sp.dataset.i) { jump(Number(sp.dataset.i), false); if (!playing) play(); } });
 rateEl.addEventListener('input', () => { showRate(); store.set('rate', Number(rateEl.value)); });
 rateEl.addEventListener('change', () => { if (playing) speakFrom(idx); });
-voiceEl.addEventListener('change', () => { store.set('voice:' + docLang, voiceEl.value); if (playing) speakFrom(idx); });
+for (const lg of ['ko', 'en']) voiceSel[lg].addEventListener('change', () => { store.set('voice:' + lg, voiceSel[lg].value); if (playing) speakFrom(idx); });
 langEl.addEventListener('change', () => {
   store.set('lang', langEl.value);
   if (!S.length) return;
